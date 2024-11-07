@@ -5,7 +5,11 @@ const app = express();
 const prisma = new PrismaClient();
 app.use(express.json());
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// Modificar o CORS para permitir acesso externo
+const cors = require('cors');
+app.use(cors());
 
 // Adicionar função de cleanup
 async function cleanup() {
@@ -99,7 +103,19 @@ app.delete('/api/trades/:id', async (req, res) => {
   }
 });
 
+// No início do arquivo, após as importações
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
+// Modificar o handler de erro global
+app.use((err, req, res, next) => {
+  console.error('Erro:', err);
+  res.status(500).json({ error: 'Erro interno do servidor' });
+});
+
 // Iniciar o servidor
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
